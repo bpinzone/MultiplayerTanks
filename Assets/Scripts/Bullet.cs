@@ -8,6 +8,7 @@ using System.Linq; //for the .ToList function
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(Collider))]
 public class Bullet : NetworkBehaviour {
+	//position is only synced once. Does not update position over network. physics handles.
 
 	Rigidbody m_rigidbody;
 	Collider m_collider;
@@ -23,7 +24,12 @@ public class Bullet : NetworkBehaviour {
 
 	//changed certain objects to have tag of bounce. To track bouncing destruction.
 	public List<string> m_bounceTags;
+
+	public List<string> m_collisionTags;
+
 	public int m_bounces = 2;
+
+	public float m_damage = 1f;
 
 	// Use this for initialization
 	void Start () {
@@ -53,9 +59,7 @@ public class Bullet : NetworkBehaviour {
 		m_rigidbody.velocity = Vector3.zero;
 		m_rigidbody.Sleep ();
 		//so we dont have to handle more physics calculations.
-		foreach (MeshRenderer m in GetComponentsInChildren<MeshRenderer> ()) {
-			m.enabled = false;
-		}
+
 		foreach (ParticleSystem ps in m_allParticles) {
 			ps.Stop ();
 		}
@@ -64,7 +68,17 @@ public class Bullet : NetworkBehaviour {
 			//important. so it plays even after bullet destruction.
 			m_explosionFX.Play ();
 		}
-		Destroy (gameObject);
+
+		//destroying a networked prefab on the server destroys it on clients as well. But how do I know Explode is run on server?
+		//because the bullets will collide with things on the server.
+		if (isServer) {
+
+			foreach (MeshRenderer m in GetComponentsInChildren<MeshRenderer> ()) {
+				m.enabled = false;
+			}
+
+			Destroy (gameObject);
+		}
 	}
 	
 	// Update is called once per frame
@@ -83,6 +97,7 @@ public class Bullet : NetworkBehaviour {
 
 	void OnCollisionEnter(Collision collision){
 
+		CheckCollisions (collision);
 		//if the list of tags contains the objects tag.
 		if(m_bounceTags.Contains(collision.gameObject.tag)){
 
@@ -92,6 +107,21 @@ public class Bullet : NetworkBehaviour {
 
 			m_bounces--;
 		}
+	}
+
+	//looks like both gameObjects and colliders hold the tags
+	void CheckCollisions(Collision collision){
+
+		if(m_collisionTags.Contains(collision.collider.tag)){
+			Explode (); //explode the bullet
+			PlayerHealth playerHealth = collision.gameObject.GetComponentInParent<PlayerHealth>(); //note, getComponentInParent....why? LOOK.
+
+			if(playerHealth != null){
+				playerHealth.Damage (m_damage);
+			}
+
+		}
+
 	}
 
 }
