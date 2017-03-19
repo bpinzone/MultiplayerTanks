@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerMotor : NetworkBehaviour {
 
-	private Rigidbody m_rigidbody;
+	public Rigidbody m_rigidbody; //this was previously private. had to change it in sec 3 lec 19 @6:42 in order to use it in Respawn Routine
 
 	public Transform m_chassis;
 	public Transform m_turret;

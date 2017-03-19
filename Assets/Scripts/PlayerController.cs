@@ -15,6 +15,12 @@ public class PlayerController : NetworkBehaviour {
 	PlayerSetup m_pSetup;
 	PlayerShoot m_pShoot;
 
+	Vector3 m_originalPosition; //store the location that the client spawned to when they connected to server.
+
+	NetworkStartPosition[] m_spawnPoints;
+
+	public GameObject m_spawnFx;
+
 	// Use this for initialization
 	void Start () {
 		
@@ -22,7 +28,17 @@ public class PlayerController : NetworkBehaviour {
 		m_pMotor = GetComponent<PlayerMotor> ();
 		m_pSetup = GetComponent<PlayerSetup> ();
 		m_pShoot = GetComponent<PlayerShoot> ();
+
+		GameManager gm = GameManager.Instance; //Instance is a public static property. globally accessible. Can do so without a reference. Dont need to find it, or set it up in inspector. Slightly dangerous. dont overuse.
+
 		
+	}
+
+
+	public override void OnStartLocalPlayer(){
+
+		m_spawnPoints = GameObject.FindObjectsOfType<NetworkStartPosition> (); //populate the spawn points list. Look at the assignment type in api. Looks like we are calling static method in GameObject type.
+		m_originalPosition = transform.position;
 	}
 	
 	Vector3 GetInput(){
@@ -35,7 +51,7 @@ public class PlayerController : NetworkBehaviour {
 	//Any method involving physics needs to be invoked inside fixed update
 	void FixedUpdate(){
 
-		if(!isLocalPlayer){
+		if(!isLocalPlayer || m_pHealth.m_isDead){
 			return;
 		}
 
@@ -50,7 +66,7 @@ public class PlayerController : NetworkBehaviour {
 
 	void Update(){
 
-		if(!isLocalPlayer){
+		if(!isLocalPlayer || m_pHealth.m_isDead){
 			return;
 		}
 
@@ -70,5 +86,40 @@ public class PlayerController : NetworkBehaviour {
 		//see pic on phone concerning this calculation/subtraction.
 		Vector3 turretDir = Utility.GetWorldPointFromScreenPoint (Input.mousePosition, m_pMotor.m_turret.position.y) - m_pMotor.m_turret.position;
 		m_pMotor.RotateTurrent (turretDir);
+	}
+
+	void Disable(){
+
+		StartCoroutine ("RespawnRoutine");
+
+	}
+
+	//spawning is handled by the network manager.
+	IEnumerator RespawnRoutine(){
+
+		transform.position = GetRandomSpawnPosition(); //maybe not great, because then a player will always spawn at the same point. 
+		m_pMotor.m_rigidbody.velocity = Vector3.zero;
+		yield return new WaitForSeconds (3f);
+		m_pHealth.Reset ();
+
+		if(m_spawnFx != null){
+			GameObject spawnFx = Instantiate (m_spawnFx, transform.position + Vector3.up * 0.5f, Quaternion.identity) as GameObject; //why does this work over the network? because it happened in an RPC a couple funtion calls back.
+			Destroy (spawnFx, 3f);
+		}
+	}
+
+	Vector3 GetRandomSpawnPosition(){
+
+		if (m_spawnPoints != null) {
+			if (m_spawnPoints.Length > 0) {
+
+				NetworkStartPosition startPos = m_spawnPoints [Random.Range (0, m_spawnPoints.Length)]; 
+				return startPos.transform.position;
+
+			}
+		}
+		return m_originalPosition;
+
+
 	}
 }

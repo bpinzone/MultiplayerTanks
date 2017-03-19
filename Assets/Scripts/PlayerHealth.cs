@@ -4,18 +4,48 @@ using UnityEngine;
 using UnityEngine.UI; //for the player health bar
 using UnityEngine.Networking;
 
+//the server is going to have authority over all player healths.
+
+
 //In UI, child objects are show ON TOP of parents. So the green health bar will be shown above the red background!
 	//made health bar a child of background, changed pivot of health bar with shift+cmd so its on the left, and then will scale the width. sick.
 
 public class PlayerHealth : NetworkBehaviour {
 
+	/*syncvars
+	 * [SyncVar] attribute
+	 * syntchornied betwork variable (server authority)
+	 * 
+	 */
+
+	/*
+	Syncvar hook
+	a function that runs every time a syncvar changes.
+	modify the previous attribute, now:
+	[SyncVar(hook="function name")]
+		variable is passed into method as an argument by default.
+			in this case, we named it "value" in the UpdateHealthBar method.
+
+	*/
+
+	/*
+	ClientRPC is a remote action (rpc) invoked on server but run on client. 
+	marked with [ClientRPC] attribute
+	method name must begin with "Rpc" 
+
+		sort of like the opposite of commands. commands are invoked on client but run on server.
 
 
+
+	*/
+	//in order to synchronize health, and do something when it changes.
+	[SyncVar(hook = "UpdateHealthBar")]
 	float m_currentHealth;
 	public float m_maxHealth = 3;
 
 	public GameObject m_deathPrefab;
 
+	[SyncVar]
 	public bool m_isDead = false;
 
 	public RectTransform m_healthBar;
@@ -24,7 +54,7 @@ public class PlayerHealth : NetworkBehaviour {
 	void Start () {
 
 
-		m_currentHealth = m_maxHealth;
+		Reset ();
 
 		//StartCoroutine ("CountDown");
 
@@ -35,15 +65,15 @@ public class PlayerHealth : NetworkBehaviour {
 
 		yield return new WaitForSeconds (1f);
 		Damage (1f);
-		UpdatehealthBar (m_currentHealth);
+		UpdateHealthBar (m_currentHealth);
 
 		yield return new WaitForSeconds (1f);
 		Damage (1f);
-		UpdatehealthBar (m_currentHealth);
+		UpdateHealthBar (m_currentHealth);
 
 		yield return new WaitForSeconds (1f);
 		Damage (1f);
-		UpdatehealthBar (m_currentHealth);
+		UpdateHealthBar (m_currentHealth);
 	}
 	
 	// Update is called once per frame
@@ -51,7 +81,7 @@ public class PlayerHealth : NetworkBehaviour {
 		
 	}
 
-	void UpdatehealthBar(float value){
+	void UpdateHealthBar(float value){
 
 		if(m_healthBar != null){
 			//150 is hardcoded. look into api. RectTransform and sizeDelta
@@ -59,19 +89,25 @@ public class PlayerHealth : NetworkBehaviour {
 		}
 	}
 
+
 	public void Damage(float damage){
 
+		if(!isServer){
+			return;
+		}
 
 		m_currentHealth -= damage;
-		UpdatehealthBar (m_currentHealth);
+
 		if(m_currentHealth <= 0 && !m_isDead){
 
 			m_isDead = true;
-			Die ();
+			Rpc_Die ();
 		}
 	}
 
-	void Die(){
+	//in order to synchronize deaths across clients
+	[ClientRpc]
+	void Rpc_Die(){
 
 		if(m_deathPrefab != null){
 
@@ -81,13 +117,13 @@ public class PlayerHealth : NetworkBehaviour {
 
 		SetActiveState (false); //dont want to destoy player, it will be holding data. Just disable it. 
 
-		gameObject.SendMessage ("Disable"); //sends a message to other components.
-
+		gameObject.SendMessage ("Disable"); //sends a message to other components on the player tank looking for a METHOD named Disable. Invokes if its found
+	
 	}
 
 	void SetActiveState( bool state){ //sets active state of tank.
 
-		foreach(Collider c in GetComponentsInChildren<Collider>()){
+		foreach(Collider c in GetComponentsInChildren<Collider>()){  //why get components in children? this for whole tank?
 			c.enabled = state;
 		}
 
@@ -95,9 +131,18 @@ public class PlayerHealth : NetworkBehaviour {
 			c.enabled = state;
 		}
 
+		//this is how you could make someone invisible. turn off their renderer only on certain clients :D 
 		foreach(Renderer r in GetComponentsInChildren<Renderer>()){
 			r.enabled = state;
 		}
+	}
+
+	public void Reset(){
+
+		m_currentHealth = m_maxHealth;
+		SetActiveState (true);
+
+		m_isDead = false;
 	}
 
 }
