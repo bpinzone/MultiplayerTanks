@@ -33,6 +33,9 @@ public class Bullet : NetworkBehaviour {
 
 	public PlayerController m_owner;
 
+	//delay from firing bullet to activating collider. So you dont run into your own bullet.
+	public float m_delay = 0.035f;
+
 	// Use this for initialization
 	void Start () {
 
@@ -44,7 +47,13 @@ public class Bullet : NetworkBehaviour {
 		StartCoroutine ("SelfDestruct");
 	}
 
+	//Controlling bullet lifetime.
 	IEnumerator SelfDestruct(){
+
+		m_collider.enabled = false;
+
+		yield return new WaitForSeconds (m_delay);
+		m_collider.enabled = true;
 
 		yield return new WaitForSeconds (m_lifetime);
 

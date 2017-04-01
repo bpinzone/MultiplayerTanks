@@ -99,7 +99,14 @@ public class PlayerController : NetworkBehaviour {
 	//spawning is handled by the network manager.
 	IEnumerator RespawnRoutine(){
 
+		SpawnPoint oldSpawn = GetNearestSpawnPoint ();
+
 		transform.position = GetRandomSpawnPosition(); //maybe not great, because then a player will always spawn at the same point. 
+
+		if(oldSpawn != null){
+			oldSpawn.m_isOccupied = false;
+		}
+
 		m_pMotor.m_rigidbody.velocity = Vector3.zero;
 		yield return new WaitForSeconds (3f);
 		m_pHealth.Reset ();
@@ -110,14 +117,50 @@ public class PlayerController : NetworkBehaviour {
 		}
 	}
 
+
+	SpawnPoint GetNearestSpawnPoint(){
+
+		//Look at this method in the API
+		Collider[] triggerColliders = Physics.OverlapSphere (transform.position, 3f, Physics.AllLayers, QueryTriggerInteraction.Collide);
+
+		foreach(Collider c in triggerColliders){
+			
+			SpawnPoint spawnPoint = c.GetComponent<SpawnPoint> ();
+			if(spawnPoint != null){
+				return spawnPoint;
+			}
+		}
+		return null;
+	}
+
 	Vector3 GetRandomSpawnPosition(){
 
 		if (m_spawnPoints != null) {
 			if (m_spawnPoints.Length > 0) {
 
-				NetworkStartPosition startPos = m_spawnPoints [Random.Range (0, m_spawnPoints.Length)]; 
-				return startPos.transform.position;
+				bool foundSpawner = false;
+				Vector3 newStartPosition = new Vector3 ();
+				float timeOut = Time.time + 2f; 
 
+				while(!foundSpawner){
+
+					NetworkStartPosition startPoint = m_spawnPoints [Random.Range (0, m_spawnPoints.Length)]; 
+					SpawnPoint spawnPoint = startPoint.GetComponent<SpawnPoint> ();
+
+					if(spawnPoint.m_isOccupied == false){
+						foundSpawner = true;
+						newStartPosition = startPoint.transform.position;
+					}
+
+					if(Time.time > timeOut){
+
+						foundSpawner = true;
+						newStartPosition = m_originalPosition;
+					}
+				}
+					
+				return newStartPosition;
+				 
 			}
 		}
 		return m_originalPosition;
