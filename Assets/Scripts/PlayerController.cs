@@ -12,7 +12,7 @@ public class PlayerController : NetworkBehaviour {
 
 	PlayerHealth m_pHealth;
 	PlayerMotor m_pMotor;
-	PlayerSetup m_pSetup;
+	public PlayerSetup m_pSetup;
 	PlayerShoot m_pShoot;
 
 	Vector3 m_originalPosition; //store the location that the client spawned to when they connected to server.
@@ -20,6 +20,8 @@ public class PlayerController : NetworkBehaviour {
 	NetworkStartPosition[] m_spawnPoints;
 
 	public GameObject m_spawnFx;
+
+	public int m_score;
 
 	// Use this for initialization
 	void Start () {
