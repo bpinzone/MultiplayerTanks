@@ -7,38 +7,40 @@ using UnityEngine.Networking;
 //remember, this is run on EVERY player in the scene. local or not. The server has authorty of ALL player colors and names.
 public class PlayerSetup : NetworkBehaviour {
 
+	//recall: [Command]   before a method. 
+
+
+	//property is synchronized across server. UpdateColor function is run whenever it changes.
 	[SyncVar(hook = "UpdateColor")]
 	public Color m_playerColor; //note: this variable type matches the type of the argument in the hooked funcion.
 
-	public string m_basename = "Player";
-
 	[SyncVar(hook = "UpdateName")]
-	public int m_playerNum = 1; //note: this variable type matches the type of the argument in the hooked funcion.
+	public string m_name = "Player";
+
+
+
 
 	public Text m_playerNameText;
 
 
-	void Start(){
-		if (!isLocalPlayer) {
-
-			UpdateName (m_playerNum);
-			UpdateColor (m_playerColor);
-
-		}
-	}
 
 	//OnStartClient runs just before OnStartLocalPlayer
+	//Invoked after clients have connected
 	public override void OnStartClient(){
 
 		//run original method you are overriding
 		base.OnStartClient ();
 
-		//disable the next field by default.
-		if(m_playerNameText != null){
-
-			m_playerNameText.enabled = false;
-
+		if (!isServer) {
+			PlayerManager pManager = GetComponent<PlayerManager> ();
+			if (pManager != null) {
+				GameManager.m_allPlayers.Add (pManager);
+			}
 		}
+
+		UpdateName (m_name);
+		UpdateColor (m_playerColor);
+
 
 	}
 
@@ -50,29 +52,12 @@ public class PlayerSetup : NetworkBehaviour {
 		}
 	}
 
-	void UpdateName (int pNum){
+	void UpdateName (string name){
 		if (m_playerNameText != null) {
 			m_playerNameText.enabled = true;
-			m_playerNameText.text = m_basename + pNum.ToString ();
+			m_playerNameText.text = m_name;
 		}
 	}
 
-	//need override  keyword
-	public override void OnStartLocalPlayer(){
 
-		//run original method you are overriding
-		base.OnStartLocalPlayer ();
-		Cmd_SetupPlayer ();
-
-
-
-	}
-
-	[Command]
-	void Cmd_SetupPlayer(){
-		//runs on server.
-		//never directly change these on clients.
-		GameManager.Instance.AddPlayer (this);
-		GameManager.Instance.m_playerCount++;
-	}
 }

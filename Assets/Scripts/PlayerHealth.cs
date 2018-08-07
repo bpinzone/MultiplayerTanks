@@ -50,7 +50,7 @@ public class PlayerHealth : NetworkBehaviour {
 
 	public RectTransform m_healthBar;
 
-	public PlayerController m_lastAttacker;
+	public PlayerManager m_lastAttacker;
 
 	// Use this for initialization
 	void Start () {
@@ -78,10 +78,7 @@ public class PlayerHealth : NetworkBehaviour {
 		UpdateHealthBar (m_currentHealth);
 	}
 	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+
 
 	void UpdateHealthBar(float value){
 
@@ -92,13 +89,13 @@ public class PlayerHealth : NetworkBehaviour {
 	}
 
 
-	public void Damage(float damage, PlayerController pc = null){ //optional argument.
+	public void Damage(float damage, PlayerManager pc = null){ //optional argument.
 
 		if(!isServer){
 			return;
 		}
 
-		if(pc != null && pc != this.GetComponent<PlayerController>()){
+		if(pc != null && pc != this.GetComponent<PlayerManager>()){
 			m_lastAttacker = pc;
 		}
 
@@ -112,13 +109,14 @@ public class PlayerHealth : NetworkBehaviour {
 				m_lastAttacker = null;
 			}
 
-			GameManager.Instance.UpdateScoreboard ();
+			GameManager.Instance.UpdateScoreBoard ();
 			m_isDead = true;
 			Rpc_Die ();
 		}
 	}
 
 	//in order to synchronize deaths across clients
+	//called on server, run on client.
 	[ClientRpc]
 	void Rpc_Die(){
 
@@ -130,7 +128,7 @@ public class PlayerHealth : NetworkBehaviour {
 
 		SetActiveState (false); //dont want to destoy player, it will be holding data. Just disable it. 
 
-		gameObject.SendMessage ("Disable"); //sends a message to other components on the player tank looking for a METHOD named Disable. Invokes if its found
+		gameObject.SendMessage ("Respawn"); //sends a message to other components on the player tank looking for a METHOD named Respawn. Invokes if its found
 	
 	}
 

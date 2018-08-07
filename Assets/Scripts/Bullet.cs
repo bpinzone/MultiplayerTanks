@@ -31,7 +31,7 @@ public class Bullet : NetworkBehaviour {
 
 	public float m_damage = 1f;
 
-	public PlayerController m_owner;
+	public PlayerManager m_owner;
 
 	//delay from firing bullet to activating collider. So you dont run into your own bullet.
 	public float m_delay = 0.035f;

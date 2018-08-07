@@ -16,7 +16,15 @@ public class PlayerMotor : NetworkBehaviour {
 	public float m_chassisRotateSpeed = 1f;
 	public float m_turretRotateSpeed = 3f;
 
+	bool m_canMove = false;
 
+	public void Enable(){
+		m_canMove = true;
+	}
+	public void Disable(){
+		m_canMove = false;
+		m_rigidbody.velocity = Vector3.zero;
+	}
 
 	// Use this for initialization
 	void Start () {
@@ -28,8 +36,10 @@ public class PlayerMotor : NetworkBehaviour {
 
 	public void MovePlayer(Vector3 dir){
 
-		Vector3 moveDirection = dir * m_moveSpeed * Time.deltaTime;
-		m_rigidbody.velocity = moveDirection;
+		if (m_canMove) {
+			Vector3 moveDirection = dir * m_moveSpeed * Time.deltaTime;
+			m_rigidbody.velocity = moveDirection;
+		}
 
 	}
 
@@ -51,12 +61,16 @@ public class PlayerMotor : NetworkBehaviour {
 
 	public void RotateChassis(Vector3 dir){
 
-		FaceDirection (m_chassis, dir, m_chassisRotateSpeed);
+		if (m_canMove) {
+			FaceDirection (m_chassis, dir, m_chassisRotateSpeed);
+		}
 	}
 
 	public void RotateTurrent(Vector3 dir){
 
-		FaceDirection (m_turret, dir, m_turretRotateSpeed);
+		if (m_canMove) {
+			FaceDirection (m_turret, dir, m_turretRotateSpeed);
+		}
 	}
 
 

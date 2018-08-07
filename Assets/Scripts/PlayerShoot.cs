@@ -31,12 +31,22 @@ public class PlayerShoot : NetworkBehaviour {
 
 	public LayerMask m_obstacleMask;
 
+	bool m_canShoot = false;
+
 
 	// Use this for initialization
 	void Start () {
 
 		m_shotsLeft = m_shotsPerBurst;
 		m_isReloading = false;
+	}
+
+	public void Enable(){
+		m_canShoot = true;
+	}
+
+	public void Disable(){
+		m_canShoot = false;
 	}
 	
 	// Update is called once per frame
@@ -47,7 +57,7 @@ public class PlayerShoot : NetworkBehaviour {
 
 	public void Shoot(){
 
-		if(m_isReloading || m_bulletPrefab == null){
+		if(m_isReloading || m_bulletPrefab == null || !m_canShoot){
 			return;
 		}
 
@@ -86,6 +96,7 @@ public class PlayerShoot : NetworkBehaviour {
 
 	}
 
+	//called from client, run on server.
 	[Command]
 	void Cmd_Shoot ()
 	{
@@ -95,7 +106,7 @@ public class PlayerShoot : NetworkBehaviour {
 		bullet = rbody.gameObject.GetComponent<Bullet> ();
 		if (rbody != null) {
 			rbody.velocity = bullet.m_speed * m_bulletSpawn.transform.forward;
-			bullet.m_owner = GetComponent<PlayerController> ();
+			bullet.m_owner = GetComponent<PlayerManager> ();
 
 			NetworkServer.Spawn (rbody.gameObject); //IMPORTANT
 
