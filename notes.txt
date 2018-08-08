@@ -1,1 +1,4 @@
-None
+TODO
+	linux build
+	client bullet lag
+
