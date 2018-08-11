@@ -8,8 +8,8 @@ using System.Linq; //for the .ToList function
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(Collider))]
 public class Bullet : NetworkBehaviour {
-	//position is only synced once. Does not update position over network. physics handles.
 
+	//position is only synced once. Does not update position over network. physics handles.
 	Rigidbody m_rigidbody;
 	Collider m_collider;
 
@@ -19,6 +19,7 @@ public class Bullet : NetworkBehaviour {
 	List<ParticleSystem> m_allParticles;
 
 	public float m_lifetime = 5f;
+
 	//explosion particle system
 	public ParticleSystem m_explosionFX;
 
@@ -38,12 +39,9 @@ public class Bullet : NetworkBehaviour {
 
 	// Use this for initialization
 	void Start () {
-
 		m_allParticles = GetComponentsInChildren<ParticleSystem> ().ToList (); //VERY USEFUL. The GetComponentsInChildren<type> funtion!!!
-	
 		m_rigidbody = GetComponent<Rigidbody> ();
 		m_collider = GetComponent<Collider> ();
-
 		StartCoroutine ("SelfDestruct");
 	}
 
@@ -51,25 +49,17 @@ public class Bullet : NetworkBehaviour {
 	IEnumerator SelfDestruct(){
 
 		m_collider.enabled = false;
-
 		yield return new WaitForSeconds (m_delay);
 		m_collider.enabled = true;
-
 		yield return new WaitForSeconds (m_lifetime);
-
 		Explode ();
-
-
-
-
 	}
 
-	void Explode ()
-	{
+	void Explode (){
 		m_collider.enabled = false;
 		m_rigidbody.velocity = Vector3.zero;
-		m_rigidbody.Sleep ();
 		//so we dont have to handle more physics calculations.
+		m_rigidbody.Sleep ();
 
 		foreach (ParticleSystem ps in m_allParticles) {
 			ps.Stop ();
@@ -83,23 +73,19 @@ public class Bullet : NetworkBehaviour {
 		//destroying a networked prefab on the server destroys it on clients as well. But how do I know Explode is run on server?
 		//because the bullets will collide with things on the server.
 		if (isServer) {
-
 			foreach (MeshRenderer m in GetComponentsInChildren<MeshRenderer> ()) {
 				m.enabled = false;
 			}
-
 			Destroy (gameObject);
 		}
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		
 	}
 
 	//runs when a collision ends.
 	void OnCollisionExit(Collision collision){
-
 		//fix bullet orientation.
 		if(m_rigidbody.velocity != Vector3.zero){
 			transform.rotation = Quaternion.LookRotation (m_rigidbody.velocity);
@@ -115,7 +101,6 @@ public class Bullet : NetworkBehaviour {
 			if(m_bounces <= 0){
 				Explode ();
 			}
-
 			m_bounces--;
 		}
 	}
@@ -130,9 +115,6 @@ public class Bullet : NetworkBehaviour {
 			if(playerHealth != null){
 				playerHealth.Damage (m_damage, m_owner);
 			}
-
 		}
-
 	}
-
 }

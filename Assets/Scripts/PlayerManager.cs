@@ -9,7 +9,6 @@ using UnityEngine.Networking;
 [RequireComponent(typeof(PlayerSetup))]
 public class PlayerManager : NetworkBehaviour {
 
-
 	PlayerHealth m_pHealth;
 	PlayerMotor m_pMotor;
 	public PlayerSetup m_pSetup;
@@ -24,32 +23,23 @@ public class PlayerManager : NetworkBehaviour {
 	[SyncVar] //this varible is tracked by the server. And server keeps the clients updated. 
 	public int m_score;
 
-	//when does this get run?
 	void OnDestroy(){
-
 		GameManager.m_allPlayers.Remove (this);
-
 	}
 
-	// Use this for initialization
 	void Start () {
-		
 		m_pHealth = GetComponent<PlayerHealth> ();
 		m_pMotor = GetComponent<PlayerMotor> ();
 		m_pSetup = GetComponent<PlayerSetup> ();
 		m_pShoot = GetComponent<PlayerShoot> ();
-
 	}
 
-
 	public override void OnStartLocalPlayer(){
-
 		m_spawnPoints = GameObject.FindObjectsOfType<NetworkStartPosition> (); //populate the spawn points list. Look at the assignment type in api. Looks like we are calling static method in GameObject type.
 		m_originalPosition = transform.position;
 	}
 	
 	Vector3 GetInput(){
-
 		float h = Input.GetAxis ("Horizontal");
 		float v = Input.GetAxis ("Vertical");
 		return new Vector3 (h, 0, v);
@@ -66,10 +56,7 @@ public class PlayerManager : NetworkBehaviour {
 		Vector3 inputDirection = GetInput ();
 		m_pMotor.MovePlayer (inputDirection);
 
-
-
 	}
-
 
 	void Update(){
 
@@ -78,7 +65,6 @@ public class PlayerManager : NetworkBehaviour {
 		}
 
 		if(Input.GetMouseButtonDown(0)){
-
 			m_pShoot.Shoot ();
 		}
 
@@ -97,7 +83,6 @@ public class PlayerManager : NetworkBehaviour {
 
 
 	public void EnableControls(){
-
 		m_pMotor.Enable ();
 		m_pShoot.Enable ();
 		
@@ -109,16 +94,13 @@ public class PlayerManager : NetworkBehaviour {
 	}
 
 	void Respawn(){
-
 		StartCoroutine ("RespawnRoutine");
-
 	}
 
 	//spawning is handled by the network manager.
 	IEnumerator RespawnRoutine(){
 
 		SpawnPoint oldSpawn = GetNearestSpawnPoint ();
-
 		transform.position = GetRandomSpawnPosition(); //maybe not great, because then a player will always spawn at the same point. 
 
 		if(oldSpawn != null){
@@ -136,7 +118,6 @@ public class PlayerManager : NetworkBehaviour {
 
 		EnableControls ();
 	}
-
 
 	SpawnPoint GetNearestSpawnPoint(){
 
@@ -178,13 +159,11 @@ public class PlayerManager : NetworkBehaviour {
 						newStartPosition = m_originalPosition;
 					}
 				}
-					
 				return newStartPosition;
 				 
 			}
 		}
 		return m_originalPosition;
-
 
 	}
 }

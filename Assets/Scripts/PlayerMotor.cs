@@ -33,7 +33,6 @@ public class PlayerMotor : NetworkBehaviour {
 
 	}
 
-
 	public void MovePlayer(Vector3 dir){
 
 		if (m_canMove) {
@@ -52,11 +51,7 @@ public class PlayerMotor : NetworkBehaviour {
 			//third param = 0 -> result will be first parameter. 
 			//third param = 1 -> result will be second parameter.
 			xform.rotation = Quaternion.Slerp (xform.rotation, desiredRot, rotSpeed * Time.deltaTime); //LOOK.
-
-
 		}
-
-
 	}
 
 	public void RotateChassis(Vector3 dir){
@@ -72,7 +67,5 @@ public class PlayerMotor : NetworkBehaviour {
 			FaceDirection (m_turret, dir, m_turretRotateSpeed);
 		}
 	}
-
-
 		
 }

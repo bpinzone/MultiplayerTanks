@@ -6,20 +6,17 @@ using UnityEngine.UI;
 using System.Collections.Generic; //for lists. Its a generic thing.
 using Prototype.NetworkLobby;
 
-/*Singleton Patter
+/* Singleton Pattern
  * allows global access from any other component. 
- * 	Means anything inside this component will be accessible to anyone. Flies in the face of OOP. 
+ * Means anything inside this component will be accessible to anyone. Flies in the face of OOP. 
  * Dont use unless you have very carefully considered it. 
  * 
- * refer to GameManager via     GameManager.Instance
+ * refer to GameManager via: GameManager.Instance
  * only permits one component of GameManager to exist per Scene. Hence "Singleton"
- * 
- * 
  */
 
-//not adding "persist on load" because we only have one scene in this game. See "music player" in laser defender for this usage.
+//not adding "persist on load" because only have one scene in this game. See "music player" in laser defender for this usage.
 
-//NetworkLobbyManager is a thing
 public class GameManager : NetworkBehaviour {
 	/*Main game loop. 
 	 * If you want this to happen in order, odds are you want to use a Coroutine to create a sequence of game states.
@@ -28,11 +25,8 @@ public class GameManager : NetworkBehaviour {
 	 * 		yield return new WaitForSeconds(3f);
 	 * 		yield return null;
 	 * 		yield return StartCoroutine("someCoroutineName"); //you can yield to another coroutine!
-	 * //learn about these keywords.
 	 * 
 	 */
-
-
 
 	public Text m_messageText;
 
@@ -62,10 +56,7 @@ public class GameManager : NetworkBehaviour {
 			}
 			return instance;
 		}
-			
-
 	}
-
 
 	//look into Awake
 	void Awake(){
@@ -81,10 +72,7 @@ public class GameManager : NetworkBehaviour {
 
 	[Server] //this method will only run on the server. 
 	void Start(){
-
-
 		StartCoroutine ("GameLoopRoutine");
-		
 	}
 
 	IEnumerator GameLoopRoutine(){
@@ -110,20 +98,13 @@ public class GameManager : NetworkBehaviour {
 		else{
 			Debug.LogWarning ("GAME MANAGER WARNING: Launch game from lobby scene only!!!");
 		}
-
-
-
 	}
-
 
 	[ClientRpc]  //server invokes
 	void RpcStartGame () {
-
 		UpdateMessage ("FIGHT");
-	
 		DisablePlayers();
 	}
-
 
 	IEnumerator StartGame(){
 
@@ -136,23 +117,16 @@ public class GameManager : NetworkBehaviour {
 	}
 
 	[ClientRpc]
-	void RpcPlayGame ()
-	{
+	void RpcPlayGame (){
 		EnablePlayers ();
-
    		UpdateMessage ("");
 	}
 
 	IEnumerator PlayGame(){
 		
 		yield return new WaitForSeconds(1f);
-
-
 		RpcPlayGame ();
-
-
-//		PlayerManager winner = null;
-		//loops and yields?
+		// PlayerManager winner = null;
 		while (m_gameOver == false) {
 			CheckScores ();
 			yield return null;
@@ -160,11 +134,8 @@ public class GameManager : NetworkBehaviour {
 	}
 
 	[ClientRpc] //invoked on server, run on client. Remote procedure call. 
-	void RpcEndGame ()
-	{
+	void RpcEndGame (){
 		DisablePlayers ();
-
-
 	}
 
 	IEnumerator EndGame(){
@@ -172,22 +143,16 @@ public class GameManager : NetworkBehaviour {
 		RpcUpdateMessage ("GAME OVER\n" + m_winner.m_pSetup.m_name + " wins!"); //fill out string (winner) properly on the server, then pass it along to clients through the rpc. 
 		yield return new WaitForSeconds(3f);
 		Reset ();
-
 		LobbyManager.s_Singleton._playerNumber = 0;
 		LobbyManager.s_Singleton.SendReturnToLobby ();
-
 	}
-
-
 
 	void EnablePlayers(){
 		for(int i = 0; i < m_allPlayers.Count; i++){
-
 			if (m_allPlayers[i] != null) {
 				m_allPlayers [i].EnableControls ();
 			}
 		}
-
 	}
 
 	void DisablePlayers(){
@@ -196,11 +161,7 @@ public class GameManager : NetworkBehaviour {
 				m_allPlayers [i].DisableControls ();
 			}
 		}
-
 	}
-
-
-
 
 	//RPC are invoked on server run on clients.
 	//As opposed to commands, which are invoked on the clients, run on the server.
@@ -210,17 +171,11 @@ public class GameManager : NetworkBehaviour {
 		for(int i = 0; i < m_allPlayers.Count; i++){
 			if(playerNames[i] != null){
 				m_playerNameText [i].text = playerNames [i];
-
 			}
 			if (playerScores [i] != null) {
-
 				m_playerScoreText [i].text = playerScores [i].ToString();
-
 			}
-
 		}
-
-
 	}
 
 	[Server] //only runs on server
@@ -228,24 +183,17 @@ public class GameManager : NetworkBehaviour {
 
 		// string[] pNames = new string[m_allPlayers.Count];
 		// int[] pScores = new int[m_allPlayers.Count];
-
 		// for(int i = 0; i < m_allPlayers.Count; i++){
 		// 	if(m_allPlayers[i] != null){
 		// 		pNames [i] = m_allPlayers [i].GetComponent<PlayerSetup> ().m_name;
 		// 		pScores [i] = m_allPlayers [i].m_score;
 		// 	}
 		// }
-
 		// Rpc_UpdateScoreboard (pNames, pScores);
-		
 	}
 
-
-
-
 	[ClientRpc]
-	void RpcUpdateMessage (string msg)
-	{
+	void RpcUpdateMessage (string msg){
 		UpdateMessage (msg);
 	}
 
@@ -262,21 +210,15 @@ public class GameManager : NetworkBehaviour {
 		if(m_winner != null){
 			m_gameOver = true;
 		}
-
 	}
 
 	PlayerManager GetWinner(){
 
-
-
 		for (int i = 0; i < m_allPlayers.Count; i++) {
-
 			if (m_allPlayers [i].m_score >= m_maxScore) {
 				return m_allPlayers [i];
 			}
 		}
-	
-
 		return null;
 	}
 
@@ -290,6 +232,5 @@ public class GameManager : NetworkBehaviour {
 		}
 
 	}
-
 
 }

@@ -5,39 +5,27 @@ using UnityEngine.UI; //for the player health bar
 using UnityEngine.Networking;
 
 //the server is going to have authority over all player healths.
-
-
 //In UI, child objects are show ON TOP of parents. So the green health bar will be shown above the red background!
-	//made health bar a child of background, changed pivot of health bar with shift+cmd so its on the left, and then will scale the width. sick.
+//made health bar a child of background, changed pivot of health bar with shift+cmd so its on the left, and then will scale the width. sick.
 
 public class PlayerHealth : NetworkBehaviour {
 
-	/*syncvars
-	 * [SyncVar] attribute
-	 * syntchornied betwork variable (server authority)
-	 * 
-	 */
+	// syncvars
+	// [SyncVar] attribute
+	// syntchornied betwork variable (server authority)
+	
+	// Syncvar hook
+	// a function that runs every time a syncvar changes.
+	// modify the previous attribute, now:
+	// [SyncVar(hook="function name")]
+	// 	variable is passed into method as an argument by default.
+	// 		in this case, we named it "value" in the UpdateHealthBar method.
 
-	/*
-	Syncvar hook
-	a function that runs every time a syncvar changes.
-	modify the previous attribute, now:
-	[SyncVar(hook="function name")]
-		variable is passed into method as an argument by default.
-			in this case, we named it "value" in the UpdateHealthBar method.
-
-	*/
-
-	/*
-	ClientRPC is a remote action (rpc) invoked on server but run on client. 
-	marked with [ClientRPC] attribute
-	method name must begin with "Rpc" 
-
-		sort of like the opposite of commands. commands are invoked on client but run on server.
-
-
-
-	*/
+	// ClientRPC is a remote action (rpc) invoked on server but run on client. 
+	// marked with [ClientRPC] attribute
+	// method name must begin with "Rpc" 
+	// 	sort of like the opposite of commands. commands are invoked on client but run on server.
+	
 	//in order to synchronize health, and do something when it changes.
 	[SyncVar(hook = "UpdateHealthBar")]
 	float m_currentHealth;
@@ -52,15 +40,9 @@ public class PlayerHealth : NetworkBehaviour {
 
 	public PlayerManager m_lastAttacker;
 
-	// Use this for initialization
 	void Start () {
-
-
 		Reset ();
-
 		//StartCoroutine ("CountDown");
-
-
 	}
 
 	IEnumerator CountDown(){
@@ -77,8 +59,6 @@ public class PlayerHealth : NetworkBehaviour {
 		Damage (1f);
 		UpdateHealthBar (m_currentHealth);
 	}
-	
-
 
 	void UpdateHealthBar(float value){
 
@@ -87,7 +67,6 @@ public class PlayerHealth : NetworkBehaviour {
 			m_healthBar.sizeDelta = new Vector2 (value / m_maxHealth * 150f, m_healthBar.sizeDelta.y);
 		}
 	}
-
 
 	public void Damage(float damage, PlayerManager pc = null){ //optional argument.
 
@@ -127,14 +106,12 @@ public class PlayerHealth : NetworkBehaviour {
 		}
 
 		SetActiveState (false); //dont want to destoy player, it will be holding data. Just disable it. 
-
 		gameObject.SendMessage ("Respawn"); //sends a message to other components on the player tank looking for a METHOD named Respawn. Invokes if its found
-	
 	}
 
 	void SetActiveState( bool state){ //sets active state of tank.
 
-		foreach(Collider c in GetComponentsInChildren<Collider>()){  //why get components in children? this for whole tank?
+		foreach(Collider c in GetComponentsInChildren<Collider>()){  
 			c.enabled = state;
 		}
 
@@ -152,7 +129,6 @@ public class PlayerHealth : NetworkBehaviour {
 
 		m_currentHealth = m_maxHealth;
 		SetActiveState (true);
-
 		m_isDead = false;
 	}
 

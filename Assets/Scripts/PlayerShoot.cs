@@ -4,15 +4,6 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 //all scripts run on all tanks in scene
-
-/*
- * Remove actions. aka remove procedure call (rpc)
- * 	funtion that can be run over the network
- * Command- type of RPC invoked on Client, run on server.
- * 	//mark with:  [Command]    and, must begin with Cmd
- * 
- */
-
 public class PlayerShoot : NetworkBehaviour {
 
 	public Rigidbody m_bulletPrefab;
@@ -33,10 +24,8 @@ public class PlayerShoot : NetworkBehaviour {
 
 	bool m_canShoot = false;
 
-
 	// Use this for initialization
 	void Start () {
-
 		m_shotsLeft = m_shotsPerBurst;
 		m_isReloading = false;
 	}
@@ -51,8 +40,6 @@ public class PlayerShoot : NetworkBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-
-
 	}
 
 	public void Shoot(){
@@ -60,8 +47,6 @@ public class PlayerShoot : NetworkBehaviour {
 		if(m_isReloading || m_bulletPrefab == null || !m_canShoot){
 			return;
 		}
-
-
 
 		RaycastHit hit;
 
@@ -76,30 +61,22 @@ public class PlayerShoot : NetworkBehaviour {
 				effect.Stop ();
 				effect.Play ();
 				Destroy (effect.gameObject, 3f);
-				 
 			}
-
 		} 
 		else {
 
 			Cmd_Shoot ();
-
-
-
 			m_shotsLeft--;
-
 			if (m_shotsLeft <= 0) {
 				StartCoroutine ("Reload");  //this looks like its about to be useful
 			}
 		}
 
-
 	}
 
 	//called from client, run on server.
 	[Command]
-	void Cmd_Shoot ()
-	{
+	void Cmd_Shoot (){
 		Bullet bullet = null;
 		//bullet = m_bulletPrefab.GetComponent<Bullet> ();
 		Rigidbody rbody = Instantiate (m_bulletPrefab, m_bulletSpawn.position, m_bulletSpawn.rotation) as Rigidbody;
@@ -107,7 +84,6 @@ public class PlayerShoot : NetworkBehaviour {
 		if (rbody != null) {
 			rbody.velocity = bullet.m_speed * m_bulletSpawn.transform.forward;
 			bullet.m_owner = GetComponent<PlayerManager> ();
-
 			NetworkServer.Spawn (rbody.gameObject); //IMPORTANT
 
 		}

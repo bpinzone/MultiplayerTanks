@@ -7,9 +7,6 @@ using UnityEngine.Networking;
 //remember, this is run on EVERY player in the scene. local or not. The server has authorty of ALL player colors and names.
 public class PlayerSetup : NetworkBehaviour {
 
-	//recall: [Command]   before a method. 
-
-
 	//property is synchronized across server. UpdateColor function is run whenever it changes.
 	[SyncVar(hook = "UpdateColor")]
 	public Color m_playerColor; //note: this variable type matches the type of the argument in the hooked funcion.
@@ -17,12 +14,7 @@ public class PlayerSetup : NetworkBehaviour {
 	[SyncVar(hook = "UpdateName")]
 	public string m_name = "Player";
 
-
-
-
 	public Text m_playerNameText;
-
-
 
 	//OnStartClient runs just before OnStartLocalPlayer
 	//Invoked after clients have connected
@@ -41,11 +33,9 @@ public class PlayerSetup : NetworkBehaviour {
 		UpdateName (m_name);
 		UpdateColor (m_playerColor);
 
-
 	}
 
 	void UpdateColor (Color pColor){
-		
 		MeshRenderer[] meshes = GetComponentsInChildren<MeshRenderer> ();
 		foreach (MeshRenderer r in meshes) {
 			r.material.color = pColor;
@@ -58,6 +48,5 @@ public class PlayerSetup : NetworkBehaviour {
 			m_playerNameText.text = m_name;
 		}
 	}
-
 
 }

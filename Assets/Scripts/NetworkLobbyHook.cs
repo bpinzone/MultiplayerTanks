@@ -20,6 +20,5 @@ public class NetworkLobbyHook : LobbyHook {
 		if(pManager != null){
 			GameManager.m_allPlayers.Add (pManager);
 		}
-		
 	}
 }
